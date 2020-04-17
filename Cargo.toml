@@ -1,0 +1,17 @@
+[package]
+name = "retry-cli"
+version = "0.0.1"
+authors = ["Brian Caswell <bmc@shmoo.com>"]
+description = "retry commands with automatic backoff"
+repository = "https://github.com/demoray/retry-cli"
+license = "MIT"
+edition = "2018"
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "retry"
+path = "src/main.rs"
+
+[dependencies]
+retry = "1.0.0"
+clap = {version = "2.33.0", default-features = false}
