@@ -12,13 +12,9 @@
 * Adds small random jitter if delays are specified
 * Use multiple delay methods (Increase by Fibonacci sequence, Delay a fixed amount, or no delay at all)
 
-```console
-$ retry
-```
-
 ## Usage
 
-```console
+```
 retry 0.0.1
 Brian Caswell <bmc@shmoo.com>
 retry commands with automatic backoff
@@ -58,7 +54,7 @@ retry failed: unable to execute: Os { code: 2, kind: NotFound, message: "No such
 $
 ```
 
-With a duration of a half second between tries, increasing following a Fibonacci (default delay method)
+With a duration of a half second between tries, increasing following a Fibonacci sequence (default delay method)
 ```console
 $ time retry --duration 50 false
 failed, retrying...
