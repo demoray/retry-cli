@@ -1,11 +1,11 @@
 [package]
 name = "retry-cli"
-version = "0.0.1"
+version = "0.0.2"
 authors = ["Brian Caswell <bmc@shmoo.com>"]
 description = "retry commands with automatic backoff"
 repository = "https://github.com/demoray/retry-cli"
 license = "MIT"
-edition = "2018"
+edition = "2021"
 categories = ["command-line-utilities"]
 
 [[bin]]
@@ -13,5 +13,6 @@ name = "retry"
 path = "src/main.rs"
 
 [dependencies]
-retry = "1.0.0"
-clap = {version = "2.33.0", default-features = false}
+retry = "2.0"
+clap = { version = "4.5", features = ["derive"] }
+thiserror = "1.0"
