@@ -15,21 +15,17 @@
 ## Usage
 
 ```
-retry 0.0.1
-Brian Caswell <bmc@shmoo.com>
-retry commands with automatic backoff
+Usage: retry [OPTIONS] <COMMAND>...
 
-USAGE:
-    retry [OPTIONS] [SUBCOMMAND]
+Arguments:
+  <COMMAND>...
 
-FLAGS:
-    -h, --help       Prints help information
-    -V, --version    Prints version information
-
-OPTIONS:
-        --duration <duration>    duration (specified in tenths of a second) [default: 10]
-        --method <method>        retry methods [default: Fibonacci]  [possible values: Fibonacci, Fixed, NoDelay]
-        --retries <retries>      specify maximum number of times to retry [default: 3]
+Options:
+      --retries <RETRIES>    [default: 3]
+      --duration <DURATION>  [default: 10]
+      --method <METHOD>      [default: fibonacci] [possible values: fibonacci, fixed, no-delay]
+  -h, --help                 Print help
+  -V, --version              Print version
 ```
 
 ## Installation
@@ -50,7 +46,8 @@ $
 The command fails with a signal
 ```console
 $ retry cmd-does-not-exist
-retry failed: unable to execute: Os { code: 2, kind: NotFound, message: "No such file or directory" }
+❯ ./target/release/retry cmd-does-not-exist
+Error: Error("unable to execute: Os { code: 2, kind: NotFound, message: \"No such file or directory\" }")
 $
 ```
 
