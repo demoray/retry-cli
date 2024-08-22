@@ -1,9 +1,6 @@
-use clap::{Parser, ValueEnum};
-use retry::{
-    delay::{jitter, Fibonacci, Fixed, NoDelay},
-    retry_with_index, OperationResult,
-};
-use std::{process::Command, time::Duration};
+use clap::Parser;
+use exponential_backoff::Backoff;
+use std::{process::Command, thread::sleep, time::Duration};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -20,61 +17,68 @@ pub enum Error {
 )]
 struct Args {
     #[clap(long, default_value = "3")]
-    retries: usize,
+    retries: u32,
+
+    /// minimum duration in tenths of a second
     #[clap(long, default_value = "10")]
-    duration: u64,
-    #[clap(long, default_value = "fibonacci")]
-    method: Method,
+    min_duration: u64,
+
+    /// maximum duration in tenths of a second
+    #[clap(long)]
+    max_duration: Option<u64>,
+
+    /// amount of randomization to add to the backoff
+    #[clap(long, default_value = "0.3")]
+    jitter: f32,
+
+    /// backoff factor
+    #[clap(long, default_value = "2")]
+    factor: u32,
+
     #[clap(required = true)]
     command: Vec<String>,
 }
 
-#[derive(PartialEq, Debug, ValueEnum, Clone, Copy)]
-pub enum Method {
-    Fibonacci,
-    Fixed,
-    NoDelay,
-}
-
-fn retry_time(
-    method: Method,
-    retries: usize,
-    duration: Duration,
-) -> Box<dyn Iterator<Item = Duration>> {
-    match method {
-        Method::Fibonacci => Box::new(Fibonacci::from(duration).map(jitter).take(retries)),
-        Method::Fixed => Box::new(Fixed::from(duration).map(jitter).take(retries)),
-        Method::NoDelay => Box::new(NoDelay.map(jitter).take(retries)),
-    }
-}
-
-fn main() -> Result<(), Error> {
+fn main() -> Result<(), String> {
     let Args {
         retries,
-        duration,
-        method,
+        min_duration,
+        max_duration,
+        jitter,
+        factor,
         mut command,
     } = Args::parse();
-    let duration = Duration::from_millis(duration.saturating_mul(100));
+
+    let min_duration = Duration::from_millis(min_duration.saturating_mul(100));
+    let max_duration = max_duration.map(|x| Duration::from_millis(x.saturating_mul(100)));
+    let retries = retries.clamp(1, u32::MAX);
+
+    let mut backoff = Backoff::new(retries, min_duration, max_duration);
+    backoff.set_factor(factor);
+    backoff.set_jitter(jitter);
 
     let mut cmd = Command::new(command.remove(0));
     if !command.is_empty() {
         cmd.args(command);
     }
 
-    let func = |current_try: u64| match cmd.status() {
-        Ok(status) => {
-            if status.success() {
-                OperationResult::Ok(())
-            } else {
-                if current_try <= retries as u64 {
-                    eprintln!("failed, retrying...");
+    let mut backoff = backoff.iter();
+    loop {
+        match cmd.status() {
+            Ok(status) => {
+                if status.success() {
+                    return Ok(());
                 }
-                OperationResult::Retry(format!("continued to fail after {retries} retries"))
+                if let Some(duration) = backoff.next() {
+                    eprintln!("failed, retrying...");
+                    sleep(duration);
+                } else {
+                    break;
+                }
             }
+            Err(fatal) => return Err(format!("unable to execute: {fatal:?}")),
         }
-        Err(fatal) => OperationResult::Err(format!("unable to execute: {fatal:?}")),
-    };
+    }
 
-    retry_with_index(retry_time(method, retries, duration), func).map_err(|e| Error::Error(e.error))
+    Err(format!("continued to fail after {retries} retries"))
 }
