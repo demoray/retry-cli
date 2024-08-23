@@ -14,14 +14,38 @@ Usage: retry [OPTIONS] <COMMAND>...
 Arguments:
   <COMMAND>...
 
+
 Options:
-      --retries <RETRIES>            [default: 3]
-      --min-duration <MIN_DURATION>  minimum duration in tenths of a second [default: 10]
-      --max-duration <MAX_DURATION>  maximum duration in tenths of a second
-      --jitter <JITTER>              amount of randomization to add to the backoff [default: 0.3]
-      --factor <FACTOR>              backoff factor [default: 2]
-  -h, --help                         Print help
-  -V, --version                      Print version
+      --attempts <ATTEMPTS>
+          [default: 3]
+
+      --min-duration <MIN_DURATION>
+          minimum duration
+
+          Examples: `10ms`, `2s`, `5m 30s`, or `1h10m`
+
+          [default: 10ms]
+
+      --max-duration <MAX_DURATION>
+          maximum duration
+
+          Examples: `10ms`, `2s`, `5m 30s`, or `1h10m`
+
+      --jitter <JITTER>
+          amount of randomization to add to the backoff
+
+          [default: 0.3]
+
+      --factor <FACTOR>
+          backoff factor
+
+          [default: 2]
+
+  -h, --help
+          Print help (see a summary with '-h')
+
+  -V, --version
+          Print version
 ```
 
 ## Installation
@@ -51,8 +75,6 @@ The command executes, but fails
 $ retry false
 failed, retrying...
 failed, retrying...
-failed, retrying...
-failed, retrying...
-Error: "continued to fail after 3 retries"
+Error: "continued to fail after 3 attempts"
 $
 ```
