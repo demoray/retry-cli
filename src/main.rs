@@ -3,12 +3,6 @@ use duration_string::DurationString;
 use exponential_backoff::Backoff;
 use std::{process::Command, thread::sleep};
 
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    #[error("error: {0}")]
-    Error(String),
-}
-
 #[derive(Parser)]
 #[command(
     author,

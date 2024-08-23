@@ -6,7 +6,7 @@ edition = "2021"
 license = "MIT"
 name = "retry-cli"
 repository = "https://github.com/demoray/retry-cli"
-version = "0.0.4"
+version = "0.0.5"
 
 [[bin]]
 name = "retry"
@@ -16,4 +16,3 @@ path = "src/main.rs"
 clap = { version = "4.5", default-features = false, features = ["derive", "help", "std", "usage"] }
 duration-string = "0.4"
 exponential-backoff = "2.0"
-thiserror = "1.0"
