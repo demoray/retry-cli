@@ -1,6 +1,7 @@
 use clap::Parser;
+use duration_string::DurationString;
 use exponential_backoff::Backoff;
-use std::{process::Command, thread::sleep, time::Duration};
+use std::{process::Command, thread::sleep};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -17,15 +18,19 @@ pub enum Error {
 )]
 struct Args {
     #[clap(long, default_value = "3")]
-    retries: u32,
+    attempts: u32,
 
-    /// minimum duration in tenths of a second
-    #[clap(long, default_value = "10")]
-    min_duration: u64,
+    /// minimum duration
+    ///
+    /// Examples: `10ms`, `2s`, `5m 30s`, or `1h10m`
+    #[clap(long, default_value = "10ms")]
+    min_duration: DurationString,
 
-    /// maximum duration in tenths of a second
+    /// maximum duration
+    ///
+    /// Examples: `10ms`, `2s`, `5m 30s`, or `1h10m`
     #[clap(long)]
-    max_duration: Option<u64>,
+    max_duration: Option<DurationString>,
 
     /// amount of randomization to add to the backoff
     #[clap(long, default_value = "0.3")]
@@ -41,7 +46,7 @@ struct Args {
 
 fn main() -> Result<(), String> {
     let Args {
-        retries,
+        attempts,
         min_duration,
         max_duration,
         jitter,
@@ -49,11 +54,7 @@ fn main() -> Result<(), String> {
         mut command,
     } = Args::parse();
 
-    let min_duration = Duration::from_millis(min_duration.saturating_mul(100));
-    let max_duration = max_duration.map(|x| Duration::from_millis(x.saturating_mul(100)));
-    let retries = retries.clamp(1, u32::MAX);
-
-    let mut backoff = Backoff::new(retries, min_duration, max_duration);
+    let mut backoff = Backoff::new(attempts, min_duration.into(), max_duration.map(Into::into));
     backoff.set_factor(factor);
     backoff.set_jitter(jitter);
 
@@ -62,23 +63,20 @@ fn main() -> Result<(), String> {
         cmd.args(command);
     }
 
-    let mut backoff = backoff.iter();
-    loop {
+    for duration in backoff {
         match cmd.status() {
             Ok(status) => {
                 if status.success() {
                     return Ok(());
                 }
-                if let Some(duration) = backoff.next() {
+                if let Some(duration) = duration {
                     eprintln!("failed, retrying...");
                     sleep(duration);
-                } else {
-                    break;
                 }
             }
             Err(fatal) => return Err(format!("unable to execute: {fatal:?}")),
         }
     }
 
-    Err(format!("continued to fail after {retries} retries"))
+    Err(format!("continued to fail after {attempts} attempts"))
 }
