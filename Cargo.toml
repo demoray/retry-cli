@@ -6,7 +6,7 @@ edition = "2021"
 license = "MIT"
 name = "retry-cli"
 repository = "https://github.com/demoray/retry-cli"
-version = "0.0.5"
+version = "0.0.6"
 
 [[bin]]
 name = "retry"
