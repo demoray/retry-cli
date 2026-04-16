@@ -13,6 +13,6 @@ name = "retry"
 path = "src/main.rs"
 
 [dependencies]
-clap = { version = "4.5", default-features = false, features = ["derive", "help", "std", "usage"] }
+clap = { version = "4.6", default-features = false, features = ["derive", "help", "std", "usage"] }
 duration-string = "0.5"
 exponential-backoff = "2.1"
